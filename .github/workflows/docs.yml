@@ -1,0 +1,133 @@
+name: Deploy Documentation
+
+on:
+  release:
+    types: [published]
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag/version to build docs for (leave empty for latest commit)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for multiversion builds
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install package with docs dependencies
+        run: pip install -e ".[docs]"
+
+      - name: Determine version tag
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ inputs.tag }}" ]]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=dev" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build HTML docs
+        run: |
+          python -m sphinx docs docs/_build/html -b html -W --keep-going
+        env:
+          SPHINX_VERSION: ${{ steps.version.outputs.tag }}
+
+      # -----------------------------------------------------------------
+      # Publish: check out gh-pages, add versioned subfolder, update
+      # stable/ symlink and redirect root index, then push.
+      # -----------------------------------------------------------------
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+          # Create branch if it doesn't exist
+          fetch-depth: 0
+
+      - name: Install versioned docs
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          TARGET="gh-pages/versions/${TAG}"
+
+          # Remove any previous build for the same tag
+          rm -rf "${TARGET}"
+          mkdir -p "${TARGET}"
+          cp -r docs/_build/html/. "${TARGET}/"
+
+          # Update the 'stable' symlink (or copy) to point at this tag
+          cd gh-pages
+          rm -f stable
+          ln -sfn "versions/${TAG}" stable
+
+          # Write a root index.html that redirects to stable/
+          cat > index.html <<'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Redirecting to stable docs…</title>
+            <meta http-equiv="refresh" content="0; url=stable/">
+          </head>
+          <body>
+            <p>Redirecting to <a href="stable/">stable documentation</a>…</p>
+          </body>
+          </html>
+          EOF
+
+          # Write a versions index listing all available versions
+          python3 - <<'PYEOF'
+          import os, pathlib, json
+          versions_dir = pathlib.Path("versions")
+          versions = sorted(
+              [d.name for d in versions_dir.iterdir() if d.is_dir()],
+              reverse=True,
+          )
+          html = """<!DOCTYPE html>
+          <html>
+          <head><meta charset="utf-8"><title>ads-mcp documentation versions</title></head>
+          <body>
+          <h1>ads-mcp documentation</h1>
+          <ul>
+          """
+          for v in versions:
+              html += f'<li><a href="versions/{v}/">{v}</a></li>\n'
+          html += "</ul></body></html>"
+          pathlib.Path("versions/index.html").write_text(html)
+          PYEOF
+
+      - name: Commit and push to gh-pages
+        run: |
+          cd gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit \
+            -m "docs: deploy ${{ steps.version.outputs.tag }} [skip ci]"
+          git push origin gh-pages
