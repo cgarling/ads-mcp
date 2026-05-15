@@ -1,8 +1,10 @@
 name: Deploy Documentation
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
   # Allow manual trigger for testing
   workflow_dispatch:
     inputs:
