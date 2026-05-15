@@ -43,17 +43,6 @@ configuration
 
 ```{toctree}
 :maxdepth: 2
-:caption: Integration Guides
-
-integrations/github-copilot
-integrations/vscode
-integrations/claude-desktop
-integrations/cursor
-integrations/other
-```
-
-```{toctree}
-:maxdepth: 2
 :caption: API Reference
 
 api/index
