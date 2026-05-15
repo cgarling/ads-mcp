@@ -65,3 +65,6 @@ select = ["E", "F", "W", "I", "UP"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[project.scripts]
+ads-mcp = "ads_mcp.server:main"
