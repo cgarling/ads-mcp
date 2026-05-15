@@ -29,9 +29,9 @@ With ads-mcp your AI assistant can:
 
 ---
 
-## Quick Start
+## Running the Server
 
-### 1. Get an ADS API key
+### 1. Get an ADS API token
 
 Create an account at <https://ui.adsabs.harvard.edu> and generate an API
 token at <https://ui.adsabs.harvard.edu/user/settings/token>.
@@ -47,6 +47,8 @@ pip install -e .
 ```
 
 ### 3. Configure
+
+Either make your token available via an environment variable `ADS_API_TOKEN` or create and edit `.env` to contain it.
 
 ```bash
 cp .env.example .env
