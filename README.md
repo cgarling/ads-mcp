@@ -239,11 +239,6 @@ Full documentation is available at **<https://cgarling.github.io/ads-mcp>**
 Includes setup guide, full tool reference, configuration reference,
 integration guides, and Python API docs.
 
-Documentation is built with [Sphinx](https://www.sphinx-doc.org/),
-[Furo](https://pradyunsg.me/furo/) theme, and
-[MyST Markdown](https://myst-parser.readthedocs.io/).
-It is deployed automatically to GitHub Pages on every release.
-
 ---
 
 ## Development
