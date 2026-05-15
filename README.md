@@ -118,42 +118,45 @@ Set these environment variables (or put them in a `.env` file):
 
 ### GitHub Copilot (Cloud Agent)
 
-Add `.github/copilot-setup-steps.yml` to your repository:
-
-```yaml
-steps:
-  - name: Install ads-mcp
-    run: pip install ads-mcp
-
-mcp_servers:
-  - name: ads
-    command: ads-mcp
-    env:
-      ADS_API_TOKEN: ${{ secrets.ADS_API_TOKEN }}
-```
-
-Store your token as a repository secret named `ADS_API_TOKEN`
-(**Settings → Secrets and variables → Actions**).
+TBD
 
 ### VS Code
 
-Create `.vscode/mcp.json` in your workspace:
+VS Code can support MCP definitions at different levels (`>` = Ctrl+Shift+P on Windows, Cmd+Shift+P on Mac).
+
+ - workspace: `>MCP: Open Workspace Folder MCP Configuration
+ - remote: `>MCP: Open Remote User Configuration
+ - global: `>MCP: Open User Configuration
+
+Here we use the `inputs` feature to avoid hard-coding our API token. Upon first starting the server, VS Code will ask you for your API key and store it securely. Start the server with `>MCP: List Servers`, select `ads`, and start server -- this will require `uv` to be installed where the server is running. Note from [VS Code docs](https://code.visualstudio.com/docs/copilot/customization/mcp-servers): MCP servers run wherever they are configured. Servers in your user profile run locally. If you're connected to a remote and want a server to run on the remote machine, define it in the workspace settings or remote user settings (MCP: Open Remote User Configuration).
 
 ```json
 {
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "ADS_API_TOKEN",
+      "description": "ADS API Token",
+      "password": true
+    }
+],
   "servers": {
     "ads": {
       "type": "stdio",
-      "command": "ads-mcp",
+	  "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/cgarling/ads-mcp",
+        "ads-mcp"
+      ],
       "env": {
-        "ADS_API_TOKEN": "${env:ADS_API_TOKEN}"
-      }
+        "ADS_API_TOKEN": "${input:ADS_API_TOKEN}"
+      },
+      "tools": ["*"]
     }
   }
 }
 ```
-
-Make sure `ADS_API_TOKEN` is exported in your shell before opening VS Code.
 
 ### Claude Desktop
 
