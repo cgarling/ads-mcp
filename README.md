@@ -38,11 +38,7 @@ token at <https://ui.adsabs.harvard.edu/user/settings/token>.
 
 ### 2. Install
 
-```bash
-pip install ads-mcp
-```
-
-Or from source:
+From source:
 
 ```bash
 git clone https://github.com/cgarling/ads-mcp.git
