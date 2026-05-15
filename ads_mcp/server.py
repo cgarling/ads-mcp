@@ -69,6 +69,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 from fastmcp import FastMCP
+from fastmcp.server.dependencies import get_context
 
 from ads_mcp.client import ADSClient, ADSError
 
@@ -218,8 +219,8 @@ async def search_ads(
         year, bibcode, publication venue, DOI, citation count, and an
         abstract snippet.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     from ads_mcp.client import DEFAULT_SEARCH_FIELDS
 
     fl = fields or DEFAULT_SEARCH_FIELDS + ",abstract"
@@ -247,8 +248,8 @@ async def get_abstract(bibcode: str) -> str:
         Formatted metadata block including title, authors, journal,
         DOI, arXiv ID, keywords, and the full abstract text.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     fields = (
         "bibcode,title,author,year,abstract,doi,identifier,"
         "pub,volume,page,keyword,citation_count,read_count,arxiv_class"
@@ -301,8 +302,8 @@ async def get_references(bibcode: str, rows: int = 50) -> str:
     Returns:
         Formatted list of papers cited by the given bibcode.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     try:
         data = await client.get_references(bibcode, rows=rows)
         return _format_results(data)
@@ -329,8 +330,8 @@ async def get_citations(bibcode: str, rows: int = 50) -> str:
         Formatted list of papers that cite the given bibcode, sorted by
         date descending.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     try:
         data = await client.get_citations(bibcode, rows=rows)
         return _format_results(data)
@@ -354,8 +355,8 @@ async def export_bibtex(bibcodes: list[str]) -> str:
     Returns:
         BibTeX-formatted string containing all requested entries.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     try:
         return await client.export(bibcodes, fmt="bibtex")
     except ADSError as exc:
@@ -378,8 +379,8 @@ async def export_ris(bibcodes: list[str]) -> str:
         RIS-formatted string suitable for import into reference managers
         such as Zotero, Mendeley, or EndNote.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     try:
         return await client.export(bibcodes, fmt="ris")
     except ADSError as exc:
@@ -418,8 +419,8 @@ async def export_citation(bibcodes: list[str], fmt: str) -> str:
             f"Unsupported format '{fmt}'. "
             f"Supported: {', '.join(_SUPPORTED_FORMATS)}"
         )
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     try:
         return await client.export(bibcodes, fmt=fmt)
     except ADSError as exc:
@@ -445,8 +446,8 @@ async def find_arxiv(arxiv_id: str) -> str:
         Formatted metadata for the matching paper, including its ADS
         bibcode, DOI, and abstract.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     # Normalise: strip "arXiv:" prefix if present
     clean_id = arxiv_id.strip().lstrip("arXiv:").lstrip("arxiv:")
     fields = (
@@ -489,8 +490,8 @@ async def find_doi(doi: str) -> str:
     Returns:
         Formatted metadata for the matching paper.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     # Strip URL prefix if present
     clean_doi = doi.strip().lstrip("https://doi.org/").lstrip("http://dx.doi.org/")
     fields = (
@@ -527,8 +528,8 @@ async def get_metrics(bibcodes: list[str]) -> str:
         Human-readable summary of the metrics, including total citations,
         h-index, i10-index, and read counts.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     try:
         data = await client.metrics(bibcodes, types=["basic", "citations", "indicators"])
         lines: list[str] = []
@@ -589,8 +590,8 @@ async def get_similar(bibcode: str, rows: int = 10) -> str:
     Returns:
         Formatted list of papers similar to the given bibcode.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     try:
         data = await client.search(
             f"similar(bibcode:{bibcode})",
@@ -632,8 +633,8 @@ async def author_search(
     Returns:
         Formatted list of papers matching the author query.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     q = f'author:"{author}"'
     if refereed_only:
         q += " AND property:refereed"
@@ -681,8 +682,8 @@ async def get_paper_details(bibcode: str, fields: str = "") -> str:
     Returns:
         Human-readable key-value summary of all requested metadata fields.
     """
-    ctx = mcp.get_context()
-    client: ADSClient = ctx.request_context.lifespan_context["client"]
+    ctx = get_context()
+    client: ADSClient = ctx.lifespan_context["client"]
     fl = fields or _ALL_FIELDS
     try:
         data = await client.search(f"bibcode:{bibcode}", fields=fl, rows=1)
