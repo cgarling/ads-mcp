@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Claude Desktop" href="claude-desktop.html"><link rel="prev" title="GitHub Copilot Cloud Agent" href="github-copilot.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>VS Code (GitHub Copilot / Continue) - ads-mcp</title>
+        <title>VS Code (GitHub Copilot) - ads-mcp</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -201,7 +201,7 @@
 <p class="caption" role="heading"><span class="caption-text">Integration Guides</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="github-copilot.html">GitHub Copilot Cloud Agent</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">VS Code (GitHub Copilot / Continue)</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">VS Code (GitHub Copilot)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="claude-desktop.html">Claude Desktop</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cursor.html">Cursor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="other.html">Other MCP Clients</a></li>
@@ -259,8 +259,8 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="vs-code-github-copilot-continue">
-<h1>VS Code (GitHub Copilot / Continue)<a class="headerlink" href="#vs-code-github-copilot-continue" title="Link to this heading">¶</a></h1>
+          <section id="vs-code-github-copilot">
+<h1>VS Code (GitHub Copilot)<a class="headerlink" href="#vs-code-github-copilot" title="Link to this heading">¶</a></h1>
 <section id="github-copilot-in-vs-code">
 <h2>GitHub Copilot in VS Code<a class="headerlink" href="#github-copilot-in-vs-code" title="Link to this heading">¶</a></h2>
 <section id="prerequisites">
@@ -268,49 +268,46 @@
 <ul class="simple">
 <li><p>VS Code ≥ 1.95</p></li>
 <li><p><a class="reference external" href="https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat">GitHub Copilot Chat</a> extension</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">uv</span></code> installed where MCP server will run</p></li>
 </ul>
 </section>
 <section id="configuration">
 <h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h3>
-<p>Open (or create) <code class="docutils literal notranslate"><span class="pre">.vscode/mcp.json</span></code> in your workspace:</p>
+<p>VS Code can support MCP definitions at different levels (<code class="docutils literal notranslate"><span class="pre">&gt;</span></code> = Ctrl+Shift+P on Windows, Cmd+Shift+P on Mac).</p>
+<ul class="simple">
+<li><p>workspace: `&gt;MCP: Open Workspace Folder MCP Configuration</p></li>
+<li><p>remote: `&gt;MCP: Open Remote User Configuration</p></li>
+<li><p>global: `&gt;MCP: Open User Configuration</p></li>
+</ul>
+<p>Here we use the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> feature to avoid hard-coding our API token. Upon first starting the server, VS Code will ask you for your API key and store it securely. Start the server with <code class="docutils literal notranslate"><span class="pre">&gt;MCP:</span> <span class="pre">List</span> <span class="pre">Servers</span></code>, select <code class="docutils literal notranslate"><span class="pre">ads</span></code>, and start server – this will require <code class="docutils literal notranslate"><span class="pre">uv</span></code> to be installed where the server is running. Note from <a class="reference external" href="https://code.visualstudio.com/docs/copilot/customization/mcp-servers">VS Code docs</a>: MCP servers run wherever they are configured. Servers in your user profile run locally. If you’re connected to a remote and want a server to run on the remote machine, define it in the workspace settings or remote user settings (MCP: Open Remote User Configuration).</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;promptString&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ADS_API_TOKEN&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ADS API Token&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">],</span>
 <span class="w">  </span><span class="nt">&quot;servers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;ads&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;stdio&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ads-mcp&quot;</span><span class="p">,</span>
+<span class="w">	  </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;uvx&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">&quot;--from&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;git+https://github.com/cgarling/ads-mcp&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="s2">&quot;ads-mcp&quot;</span>
+<span class="w">      </span><span class="p">],</span>
 <span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;ADS_API_TOKEN&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${env:ADS_API_TOKEN}&quot;</span>
-<span class="w">      </span><span class="p">}</span>
+<span class="w">        </span><span class="nt">&quot;ADS_API_TOKEN&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${input:ADS_API_TOKEN}&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;tools&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">]</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Set <code class="docutils literal notranslate"><span class="pre">ADS_API_TOKEN</span></code> in your shell profile (<code class="docutils literal notranslate"><span class="pre">.bashrc</span></code>, <code class="docutils literal notranslate"><span class="pre">.zshrc</span></code>, etc.):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">ADS_API_TOKEN</span><span class="o">=</span>your_key_here
-</pre></div>
-</div>
-<p>Then restart VS Code (or reload the window with <code class="docutils literal notranslate"><span class="pre">Ctrl+Shift+P</span></code> →
-<em>Developer: Reload Window</em>).</p>
-<p>In Copilot Chat, switch to <strong>Agent</strong> mode and select the <code class="docutils literal notranslate"><span class="pre">ads</span></code> server.</p>
 </section>
-</section>
-<section id="continue-extension">
-<h2>Continue extension<a class="headerlink" href="#continue-extension" title="Link to this heading">¶</a></h2>
-<p>If you use the <a class="reference external" href="https://marketplace.visualstudio.com/items?itemName=Continue.continue">Continue</a>
-extension, add the following to <code class="docutils literal notranslate"><span class="pre">~/.continue/config.json</span></code>:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;ads&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ads-mcp&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;ADS_API_TOKEN&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;your_key_here&quot;</span>
-<span class="w">      </span><span class="p">}</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 </section>
 </section>
 
@@ -389,13 +386,12 @@ extension, add the following to <code class="docutils literal notranslate"><span
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">VS Code (GitHub Copilot / Continue)</a><ul>
+<li><a class="reference internal" href="#">VS Code (GitHub Copilot)</a><ul>
 <li><a class="reference internal" href="#github-copilot-in-vs-code">GitHub Copilot in VS Code</a><ul>
 <li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 <li><a class="reference internal" href="#configuration">Configuration</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#continue-extension">Continue extension</a></li>
 </ul>
 </li>
 </ul>
