@@ -164,74 +164,47 @@ Edit your Claude Desktop configuration file:
 
 | OS | Path |
 |----|------|
-| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
-| Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
-| Linux | `~/.config/Claude/claude_desktop_config.json` |
+| macOS | `~/.claude/mcp.json` |
+| Windows | `%USERPROFILE%\.claude\mcp.json` |
+| Linux | `~/.claude/mcp.json` |
 
 ```json
 {
   "mcpServers": {
     "ads": {
-      "command": "ads-mcp",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/cgarling/ads-mcp",
+        "ads-mcp"
+      ],
       "env": {
-        "ADS_API_TOKEN": "your_key_here"
+        "ADS_API_TOKEN": "${ADS_API_TOKEN}"
       }
     }
   }
 }
 ```
+
+Where the environment variable `ADS_API_TOKEN` must be available to the shell that will run the server.
 
 Restart Claude Desktop after saving.
 
 ### Cursor
 
-Open **Cursor Settings → MCP** and add a new server, or edit
-`~/.cursor/mcp.json`:
+Edit MCP configuration files
 
-```json
-{
-  "mcpServers": {
-    "ads": {
-      "command": "ads-mcp",
-      "env": {
-        "ADS_API_TOKEN": "your_key_here"
-      }
-    }
-  }
-}
-```
+| OS | Path |
+|----|------|
+| macOS | `~/.cursor/mcp.json` |
+| Windows | `%USERPROFILE%\.cursor\mcp.json` |
+| Linux | `~/.cursor/mcp.json` |
 
-### Zed
-
-Edit `~/.config/zed/settings.json`:
-
-```json
-{
-  "context_servers": {
-    "ads": {
-      "command": { "path": "ads-mcp", "args": [] },
-      "settings": {}
-    }
-  }
-}
-```
+and add the same json as for Claude Code above.
 
 ### Generic MCP client
 
-Any MCP client that supports stdio transport can use ads-mcp:
-
-```json
-{
-  "mcpServers": {
-    "ads": {
-      "command": "ads-mcp",
-      "env": {
-        "ADS_API_TOKEN": "your_key_here"
-      }
-    }
-  }
-}
-```
+Other MCP clients that support stdio transport should be able to use ads-mcp with json similar to the above, but not all may support secret interpolation `"env": {"ADS_API_TOKEN": "${ADS_API_TOKEN}"}`.
 
 ---
 
