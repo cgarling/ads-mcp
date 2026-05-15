@@ -118,7 +118,29 @@ Set these environment variables (or put them in a `.env` file):
 
 ### GitHub Copilot (Cloud Agent)
 
-TBD
+To use ads-mcp with GitHub Copilot Cloud Agent, you must make your ADS token available via a repository secret. It's possible to do this on an org-wide basis (so the same key is used across all repos), but here we focus on per-repo configuration. On your repository, go to `Settings` (cog symbol), scroll down and select `Secrets and variables` and select `Agents` from the submenu. Add a new secret with name `COPILOT_MCP_ADS_API_TOKEN` and put your ADS API Token in as the value. **The COPILOT_MCP_ prefix is necessary** as only Agents secrets and variables with names prefixed with `COPILOT_MCP_` will be available to your MCP configuration (see [here](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/configure-secrets-and-variables)).
+
+To add the MCP configuration json, go to `Settings`, then scroll down the left panel until you get to `Copilot`, open that dropdown and select `Cloud agent`. Then scroll down to the section `Model Context Protocol (MCP)` and add the following 
+
+```json
+{
+  "mcpServers": {
+    "ads": {
+      "type": "local",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/cgarling/ads-mcp",
+        "ads-mcp"
+      ],
+      "env": {
+        "ADS_API_TOKEN": "${COPILOT_MCP_ADS_API_TOKEN}"
+      },
+      "tools": ["*"]
+    }
+  }
+}
+```
 
 ### VS Code
 
