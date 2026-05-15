@@ -320,6 +320,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dotenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dotenv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastmcp</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastMCP</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastmcp.server.dependencies</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_context</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">ads_mcp.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ADSClient</span><span class="p">,</span> <span class="n">ADSError</span>
 
@@ -471,8 +472,8 @@
 <span class="sd">        year, bibcode, publication venue, DOI, citation count, and an</span>
 <span class="sd">        abstract snippet.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">ads_mcp.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_SEARCH_FIELDS</span>
 
     <span class="n">fl</span> <span class="o">=</span> <span class="n">fields</span> <span class="ow">or</span> <span class="n">DEFAULT_SEARCH_FIELDS</span> <span class="o">+</span> <span class="s2">&quot;,abstract&quot;</span>
@@ -503,8 +504,8 @@
 <span class="sd">        Formatted metadata block including title, authors, journal,</span>
 <span class="sd">        DOI, arXiv ID, keywords, and the full abstract text.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;bibcode,title,author,year,abstract,doi,identifier,&quot;</span>
         <span class="s2">&quot;pub,volume,page,keyword,citation_count,read_count,arxiv_class&quot;</span>
@@ -560,8 +561,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        Formatted list of papers cited by the given bibcode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get_references</span><span class="p">(</span><span class="n">bibcode</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_format_results</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -591,8 +592,8 @@
 <span class="sd">        Formatted list of papers that cite the given bibcode, sorted by</span>
 <span class="sd">        date descending.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">get_citations</span><span class="p">(</span><span class="n">bibcode</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="n">rows</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_format_results</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -619,8 +620,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        BibTeX-formatted string containing all requested entries.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">bibcodes</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">ADSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
@@ -646,8 +647,8 @@
 <span class="sd">        RIS-formatted string suitable for import into reference managers</span>
 <span class="sd">        such as Zotero, Mendeley, or EndNote.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">bibcodes</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;ris&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">ADSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
@@ -689,8 +690,8 @@
             <span class="sa">f</span><span class="s2">&quot;Unsupported format &#39;</span><span class="si">{</span><span class="n">fmt</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Supported: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_SUPPORTED_FORMATS</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">bibcodes</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="n">fmt</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">ADSError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
@@ -719,8 +720,8 @@
 <span class="sd">        Formatted metadata for the matching paper, including its ADS</span>
 <span class="sd">        bibcode, DOI, and abstract.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="c1"># Normalise: strip &quot;arXiv:&quot; prefix if present</span>
     <span class="n">clean_id</span> <span class="o">=</span> <span class="n">arxiv_id</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;arXiv:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;arxiv:&quot;</span><span class="p">)</span>
     <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
@@ -766,8 +767,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        Formatted metadata for the matching paper.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="c1"># Strip URL prefix if present</span>
     <span class="n">clean_doi</span> <span class="o">=</span> <span class="n">doi</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;https://doi.org/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;http://dx.doi.org/&quot;</span><span class="p">)</span>
     <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span>
@@ -807,8 +808,8 @@
 <span class="sd">        Human-readable summary of the metrics, including total citations,</span>
 <span class="sd">        h-index, i10-index, and read counts.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">metrics</span><span class="p">(</span><span class="n">bibcodes</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;basic&quot;</span><span class="p">,</span> <span class="s2">&quot;citations&quot;</span><span class="p">,</span> <span class="s2">&quot;indicators&quot;</span><span class="p">])</span>
         <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -872,8 +873,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        Formatted list of papers similar to the given bibcode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;similar(bibcode:</span><span class="si">{</span><span class="n">bibcode</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
@@ -918,8 +919,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        Formatted list of papers matching the author query.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="n">q</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;author:&quot;</span><span class="si">{</span><span class="n">author</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
     <span class="k">if</span> <span class="n">refereed_only</span><span class="p">:</span>
         <span class="n">q</span> <span class="o">+=</span> <span class="s2">&quot; AND property:refereed&quot;</span>
@@ -970,8 +971,8 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        Human-readable key-value summary of all requested metadata fields.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ctx</span> <span class="o">=</span> <span class="n">mcp</span><span class="o">.</span><span class="n">get_context</span><span class="p">()</span>
-    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">request_context</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_context</span><span class="p">()</span>
+    <span class="n">client</span><span class="p">:</span> <span class="n">ADSClient</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">lifespan_context</span><span class="p">[</span><span class="s2">&quot;client&quot;</span><span class="p">]</span>
     <span class="n">fl</span> <span class="o">=</span> <span class="n">fields</span> <span class="ow">or</span> <span class="n">_ALL_FIELDS</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;bibcode:</span><span class="si">{</span><span class="n">bibcode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="n">fl</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
