@@ -10,10 +10,10 @@ class TestADSClient:
 
     def test_requires_api_key(self, monkeypatch):
         """ADSClient raises ValueError when no API key is available."""
-        monkeypatch.delenv("ADS_API_KEY", raising=False)
+        monkeypatch.delenv("ADS_API_TOKEN", raising=False)
         from ads_mcp.client import ADSClient
 
-        with pytest.raises(ValueError, match="ADS_API_KEY"):
+        with pytest.raises(ValueError, match="ADS_API_TOKEN"):
             ADSClient()
 
     def test_accepts_explicit_key(self):
@@ -24,8 +24,8 @@ class TestADSClient:
         assert client._api_key == "test-key-123"
 
     def test_accepts_env_key(self, monkeypatch):
-        """ADSClient reads the key from the ADS_API_KEY environment variable."""
-        monkeypatch.setenv("ADS_API_KEY", "env-key-456")
+        """ADSClient reads the key from the ADS_API_TOKEN environment variable."""
+        monkeypatch.setenv("ADS_API_TOKEN", "env-key-456")
         from ads_mcp.client import ADSClient
 
         client = ADSClient()

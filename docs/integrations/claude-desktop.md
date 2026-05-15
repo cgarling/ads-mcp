@@ -21,7 +21,7 @@ Add (or merge) the following JSON:
     "ads": {
       "command": "ads-mcp",
       "env": {
-        "ADS_API_KEY": "your_key_here"
+        "ADS_API_TOKEN": "your_key_here"
       }
     }
   }

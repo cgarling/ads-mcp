@@ -15,27 +15,35 @@ steps:
 
   - name: Configure ADS API key
     env:
-      ADS_API_KEY: ${{ secrets.ADS_API_KEY }}
-    run: echo "ADS_API_KEY=$ADS_API_KEY" >> $GITHUB_ENV
+      ADS_API_TOKEN: ${{ secrets.ADS_API_TOKEN }}
+    run: echo "ADS_API_TOKEN=$ADS_API_TOKEN" >> $GITHUB_ENV
 ```
 
 ## Add the secret
 
 1. Go to **Settings → Secrets and variables → Actions**.
 2. Click **New repository secret**.
-3. Name: `ADS_API_KEY`, Value: your ADS token.
+3. Name: `ADS_API_TOKEN`, Value: your ADS token.
 
 ## MCP server block
 
-In `.github/copilot-setup-steps.yml` (or your Copilot settings file), add
-the MCP server under `mcp_servers`:
+In your Copilot settings (or `.github/copilot-setup-steps.yml`), add
+the MCP server:
 
-```yaml
-mcp_servers:
-  - name: ads
-    command: ads-mcp
-    env:
-      ADS_API_KEY: ${{ secrets.ADS_API_KEY }}
+```json
+{
+  "mcpServers": {
+    "ads": {
+      "type": "local",
+      "command": "uvx",
+      "args": ["ads-mcp"],
+      "env": {
+        "ADS_API_TOKEN": "$ADS_API_TOKEN"
+      },
+      "tools": ["*"]
+    }
+  }
+}
 ```
 
 ## Usage

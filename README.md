@@ -51,7 +51,7 @@ pip install -e .
 ```bash
 cp .env.example .env
 # Edit .env and add your key:
-#   ADS_API_KEY=your_token_here
+#   ADS_API_TOKEN=your_token_here
 ```
 
 ### 4. Run
@@ -107,7 +107,7 @@ Set these environment variables (or put them in a `.env` file):
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `ADS_API_KEY` | yes | — | Your ADS API bearer token |
+| `ADS_API_TOKEN` | yes | — | Your ADS API bearer token |
 | `ADS_MCP_LOG_LEVEL` | no | `WARNING` | Python log level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
 
 > **Never commit your API key to version control.** Add `.env` to your `.gitignore`.
@@ -129,10 +129,10 @@ mcp_servers:
   - name: ads
     command: ads-mcp
     env:
-      ADS_API_KEY: ${{ secrets.ADS_API_KEY }}
+      ADS_API_TOKEN: ${{ secrets.ADS_API_TOKEN }}
 ```
 
-Store your token as a repository secret named `ADS_API_KEY`
+Store your token as a repository secret named `ADS_API_TOKEN`
 (**Settings → Secrets and variables → Actions**).
 
 ### VS Code
@@ -146,14 +146,14 @@ Create `.vscode/mcp.json` in your workspace:
       "type": "stdio",
       "command": "ads-mcp",
       "env": {
-        "ADS_API_KEY": "${env:ADS_API_KEY}"
+        "ADS_API_TOKEN": "${env:ADS_API_TOKEN}"
       }
     }
   }
 }
 ```
 
-Make sure `ADS_API_KEY` is exported in your shell before opening VS Code.
+Make sure `ADS_API_TOKEN` is exported in your shell before opening VS Code.
 
 ### Claude Desktop
 
@@ -171,7 +171,7 @@ Edit your Claude Desktop configuration file:
     "ads": {
       "command": "ads-mcp",
       "env": {
-        "ADS_API_KEY": "your_key_here"
+        "ADS_API_TOKEN": "your_key_here"
       }
     }
   }
@@ -191,7 +191,7 @@ Open **Cursor Settings → MCP** and add a new server, or edit
     "ads": {
       "command": "ads-mcp",
       "env": {
-        "ADS_API_KEY": "your_key_here"
+        "ADS_API_TOKEN": "your_key_here"
       }
     }
   }
@@ -223,7 +223,7 @@ Any MCP client that supports stdio transport can use ads-mcp:
     "ads": {
       "command": "ads-mcp",
       "env": {
-        "ADS_API_KEY": "your_key_here"
+        "ADS_API_TOKEN": "your_key_here"
       }
     }
   }
