@@ -18,17 +18,17 @@ Open (or create) `.vscode/mcp.json` in your workspace:
       "type": "stdio",
       "command": "ads-mcp",
       "env": {
-        "ADS_API_KEY": "${env:ADS_API_KEY}"
+        "ADS_API_TOKEN": "${env:ADS_API_TOKEN}"
       }
     }
   }
 }
 ```
 
-Set `ADS_API_KEY` in your shell profile (`.bashrc`, `.zshrc`, etc.):
+Set `ADS_API_TOKEN` in your shell profile (`.bashrc`, `.zshrc`, etc.):
 
 ```bash
-export ADS_API_KEY=your_key_here
+export ADS_API_TOKEN=your_key_here
 ```
 
 Then restart VS Code (or reload the window with `Ctrl+Shift+P` →
@@ -47,7 +47,7 @@ extension, add the following to `~/.continue/config.json`:
     "ads": {
       "command": "ads-mcp",
       "env": {
-        "ADS_API_KEY": "your_key_here"
+        "ADS_API_TOKEN": "your_key_here"
       }
     }
   }

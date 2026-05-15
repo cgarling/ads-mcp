@@ -5,7 +5,7 @@ ADS tool as an MCP tool handler.  Each tool is a thin wrapper around
 :class:`~ads_mcp.client.ADSClient`.
 
 The server is configured via environment variables (see
-:ref:`configuration`).  The most important is ``ADS_API_KEY``, which must
+:ref:`configuration`).  The most important is ``ADS_API_TOKEN``, which must
 be set to a valid ADS API token.
 
 Running the server

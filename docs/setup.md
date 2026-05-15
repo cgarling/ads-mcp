@@ -24,7 +24,7 @@ pip install -e .
 
 ## Configure your API key
 
-The server reads your ADS API key from the `ADS_API_KEY` environment variable.
+The server reads your ADS API key from the `ADS_API_TOKEN` environment variable.
 
 ### Using a `.env` file (recommended)
 
@@ -38,7 +38,7 @@ cp .env.example .env
 Your `.env` should look like:
 
 ```ini
-ADS_API_KEY=your_real_ads_key_here
+ADS_API_TOKEN=your_real_ads_key_here
 ```
 
 :::{warning}
@@ -49,7 +49,7 @@ Never commit your `.env` file or your API key to version control.
 ### Using environment variables directly
 
 ```bash
-export ADS_API_KEY=your_real_ads_key_here
+export ADS_API_TOKEN=your_real_ads_key_here
 ads-mcp
 ```
 

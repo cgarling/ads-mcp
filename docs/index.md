@@ -57,8 +57,6 @@ integrations/other
 :caption: API Reference
 
 api/index
-api/server
-api/client
 ```
 
 ```{toctree}

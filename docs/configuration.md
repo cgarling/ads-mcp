@@ -8,13 +8,13 @@ you run the server; the server loads this file automatically via
 
 ## Variables
 
-### `ADS_API_KEY` *(required)*
+### `ADS_API_TOKEN` *(required)*
 
 Your ADS API bearer token.  Obtain one at
 <https://ui.adsabs.harvard.edu/user/settings/token>.
 
 ```ini
-ADS_API_KEY=your_key_here
+ADS_API_TOKEN=your_key_here
 ```
 
 :::{warning}

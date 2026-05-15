@@ -19,7 +19,7 @@ Zed settings (`~/.config/zed/settings.json`):
 }
 ```
 
-Set `ADS_API_KEY` in your environment before launching Zed.
+Set `ADS_API_TOKEN` in your environment before launching Zed.
 
 ---
 
@@ -37,7 +37,7 @@ Generic configuration pattern:
     "ads": {
       "command": "ads-mcp",
       "env": {
-        "ADS_API_KEY": "your_key_here"
+        "ADS_API_TOKEN": "your_key_here"
       }
     }
   }
@@ -55,7 +55,7 @@ server (for example, to serve multiple clients):
 import os
 from ads_mcp.server import mcp
 
-os.environ["ADS_API_KEY"] = "your_key_here"
+os.environ["ADS_API_TOKEN"] = "your_key_here"
 mcp.run(transport="streamable-http", host="127.0.0.1", port=8080)
 ```
 
@@ -75,7 +75,7 @@ from mcp.client.stdio import stdio_client
 
 server_params = StdioServerParameters(
     command="ads-mcp",
-    env={"ADS_API_KEY": "your_key_here"},
+    env={"ADS_API_TOKEN": "your_key_here"},
 )
 
 async def main():

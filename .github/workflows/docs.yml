@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 0  # Full history needed for multiversion builds
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
@@ -83,10 +83,15 @@ jobs:
           mkdir -p "${TARGET}"
           cp -r docs/_build/html/. "${TARGET}/"
 
-          # Update the 'stable' symlink (or copy) to point at this tag
+          # Update the 'stable' directory to contain this tag's docs
+          # (symlinks are not followed by GitHub Pages, so we copy)
           cd gh-pages
-          rm -f stable
-          ln -sfn "versions/${TAG}" stable
+          rm -rf stable
+          mkdir -p stable
+          cp -r "versions/${TAG}/." stable/
+
+          # Ensure GitHub Pages does not run Jekyll (which strips _static etc.)
+          touch .nojekyll
 
           # Write a root index.html that redirects to stable/
           cat > index.html <<'EOF'
@@ -105,7 +110,7 @@ jobs:
 
           # Write a versions index listing all available versions
           python3 - <<'PYEOF'
-          import os, pathlib, json
+          import pathlib
           versions_dir = pathlib.Path("versions")
           versions = sorted(
               [d.name for d in versions_dir.iterdir() if d.is_dir()],

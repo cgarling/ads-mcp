@@ -57,11 +57,11 @@ class ADSClient:
 
     Args:
         api_key: ADS API bearer token. If *None*, the value of the
-            ``ADS_API_KEY`` environment variable is used.
+            ``ADS_API_TOKEN`` environment variable is used.
         timeout: Request timeout in seconds. Defaults to ``30``.
 
     Raises:
-        ValueError: If no API key is provided and ``ADS_API_KEY`` is
+        ValueError: If no API key is provided and ``ADS_API_TOKEN`` is
             not set in the environment.
 
     Example:
@@ -72,10 +72,10 @@ class ADSClient:
     """
 
     def __init__(self, api_key: str | None = None, timeout: float = 30.0) -> None:
-        resolved_key = api_key or os.environ.get("ADS_API_KEY")
+        resolved_key = api_key or os.environ.get("ADS_API_TOKEN")
         if not resolved_key:
             raise ValueError(
-                "No ADS API key provided. Set the ADS_API_KEY environment variable "
+                "No ADS API key provided. Set the ADS_API_TOKEN environment variable "
                 "or pass api_key= to ADSClient."
             )
         self._api_key = resolved_key

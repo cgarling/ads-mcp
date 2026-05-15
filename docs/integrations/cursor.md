@@ -27,7 +27,7 @@ Cursor):
     "ads": {
       "command": "ads-mcp",
       "env": {
-        "ADS_API_KEY": "your_key_here"
+        "ADS_API_TOKEN": "your_key_here"
       }
     }
   }
@@ -40,7 +40,7 @@ If you do not want to hard-code the key in the JSON file, set it as an
 environment variable in your shell profile:
 
 ```bash
-export ADS_API_KEY=your_key_here
+export ADS_API_TOKEN=your_key_here
 ```
 
 Cursor inherits your shell's environment when it launches `ads-mcp`.
