@@ -1,0 +1,67 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ads-mcp"
+version = "0.1.0"
+description = "MCP server providing access to the SAO/NASA Astrophysics Data System (ADS) API"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+keywords = ["mcp", "astrophysics", "nasa", "ads", "adsabs", "astronomy", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "fastmcp>=2.0.0",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx>=7.0",
+    "furo>=2024.1.29",
+    "myst-parser>=3.0.0",
+    "sphinx-autodoc-typehints>=2.0.0",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-design>=0.5.0",
+    "sphinxcontrib-napoleon>=0.7",
+    "sphinx-multiversion>=0.2.4",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-httpx>=0.30.0",
+    "ruff>=0.4.0",
+]
+
+[project.scripts]
+ads-mcp = "ads_mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/cgarling/ads-mcp"
+Documentation = "https://cgarling.github.io/ads-mcp"
+"Bug Tracker" = "https://github.com/cgarling/ads-mcp/issues"
+Repository = "https://github.com/cgarling/ads-mcp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ads_mcp"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
