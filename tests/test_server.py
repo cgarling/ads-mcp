@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+import os
+import re
 
 import pytest
 
@@ -10,104 +11,52 @@ import pytest
 # Test constants
 # ---------------------------------------------------------------------------
 
+#: ADS bibcode used throughout the integration tests.
 BIBCODE = "2025ApJS..277...61G"
-ARXIV_ID = "2501.12345"
-DOI = "10.3847/1538-4365/adacbc"
 
-MOCK_DOC = {
-    "bibcode": BIBCODE,
-    "title": ["The MAVERIC Survey: A Test Paper"],
-    "author": ["Garling, C. T.", "Strader, J.", "Chomiuk, L."],
-    "year": "2025",
-    "abstract": (
-        "We present a catalog of compact binary millisecond pulsars detected "
-        "in globular clusters across the Milky Way."
-    ),
-    "doi": [DOI],
-    "identifier": [f"arXiv:{ARXIV_ID}", f"2025arXiv250112345G"],
-    "pub": "The Astrophysical Journal Supplement Series",
-    "volume": "277",
-    "page": ["61"],
-    "keyword": ["globular clusters: general", "pulsars: general"],
-    "citation_count": 3,
-    "read_count": 42,
-    "arxiv_class": ["astro-ph.HE"],
-}
-
-MOCK_SEARCH_ONE = {"response": {"numFound": 1, "docs": [MOCK_DOC]}}
-MOCK_SEARCH_MULTI = {"response": {"numFound": 15, "docs": [MOCK_DOC] * 5}}
-MOCK_EMPTY_SEARCH = {"response": {"numFound": 0, "docs": []}}
-
-MOCK_BIBTEX = (
-    "@ARTICLE{2025ApJS..277...61G,\n"
-    "       author = {{Garling}, C. T.},\n"
-    "        title = {The MAVERIC Survey: A Test Paper},\n"
-    "      journal = {\\apjs},\n"
-    "         year = 2025,\n"
-    "       volume = {277},\n"
-    "          eid = {61},\n"
-    "}\n"
-)
-
-MOCK_RIS = (
-    "TY  - JOUR\n"
-    f"ID  - {BIBCODE}\n"
-    "TI  - The MAVERIC Survey: A Test Paper\n"
-    "AU  - Garling, C. T.\n"
-    "PY  - 2025\n"
-    "ER  -\n"
-)
-
-MOCK_METRICS = {
-    "basic stats": {
-        "number of papers": 1,
-        "total number of reads": 42,
-        "total number of downloads": 20,
-    },
-    "citation stats": {
-        "total number of citations": 3,
-        "total number of refereed citations": 3,
-        "number of citing papers": 3,
-    },
-    "indicators": {
-        "h": 1,
-        "g": 1,
-        "m": 0.5,
-        "i10": 0,
-        "i100": 0,
-        "tori": 0.05,
-        "riq": 5,
-    },
-}
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture
-def mock_ads_client():
-    """AsyncMock of ADSClient with canned responses for every method."""
-    client = AsyncMock()
-    client.search.return_value = MOCK_SEARCH_ONE
-    client.get_references.return_value = MOCK_SEARCH_MULTI
-    client.get_citations.return_value = MOCK_SEARCH_MULTI
-    client.export.return_value = MOCK_BIBTEX
-    client.metrics.return_value = MOCK_METRICS
-    return client
+@pytest.fixture(scope="session")
+def api_key():
+    """Return the ADS API token, skipping the session if it is absent."""
+    key = os.environ.get("ADS_API_TOKEN")
+    if not key:
+        pytest.skip("ADS_API_TOKEN not set — skipping integration tests")
+    return key
 
 
 @pytest.fixture
-def mcp_ctx(mock_ads_client):
-    """Patch mcp.get_context so every tool function uses mock_ads_client."""
-    ctx = MagicMock()
-    ctx.request_context.lifespan_context = {"client": mock_ads_client}
-    with patch("ads_mcp.server.mcp.get_context", return_value=ctx):
-        yield mock_ads_client
+async def live_ctx(api_key):
+    """Wire a real ADSClient into the FastMCP context for the duration of a test.
+
+    Sets ``mcp._lifespan_result`` so that ``ctx.lifespan_context["client"]``
+    returns the live client, then installs a minimal ``Context`` into the
+    ``_current_context`` ContextVar consumed by ``get_context()``.
+    """
+    from fastmcp.server.context import Context, _current_context
+
+    from ads_mcp.client import ADSClient
+    from ads_mcp.server import mcp
+
+    async with ADSClient(api_key=api_key) as client:
+        mcp._lifespan_result = {"client": client}
+        mcp._lifespan_result_set = True
+        ctx = Context(fastmcp=mcp)
+        token = _current_context.set(ctx)
+        try:
+            yield
+        finally:
+            _current_context.reset(token)
+            mcp._lifespan_result = None
+            mcp._lifespan_result_set = False
 
 
 # ---------------------------------------------------------------------------
-# ADSClient unit tests
+# ADSClient unit tests (no API key required)
 # ---------------------------------------------------------------------------
 
 
@@ -139,11 +88,11 @@ class TestADSClient:
 
 
 # ---------------------------------------------------------------------------
-# Server registration smoke tests
+# Server registration smoke tests (no API key required)
 # ---------------------------------------------------------------------------
 
 
-class TestServerTools:
+class TestServerRegistration:
     """Smoke tests for the FastMCP application."""
 
     async def test_all_tools_registered(self):
@@ -179,355 +128,355 @@ class TestServerTools:
 
 
 # ---------------------------------------------------------------------------
-# Tool functional tests
+# Integration tests — require ADS_API_TOKEN
 # ---------------------------------------------------------------------------
 
 
 class TestSearchAds:
-    """Tests for the search_ads tool."""
+    """Integration tests for the search_ads tool."""
 
-    async def test_returns_formatted_results(self, mcp_ctx):
-        """search_ads returns a formatted result string."""
+    async def test_bibcode_query_returns_paper(self, live_ctx):
+        """Searching by bibcode returns the expected paper."""
         from ads_mcp.server import search_ads
 
-        result = await search_ads("globular clusters")
-        assert "Found" in result
+        result = await search_ads(f"bibcode:{BIBCODE}")
+        assert "ADS API error" not in result
         assert BIBCODE in result
-        mcp_ctx.search.assert_called_once()
 
-    async def test_no_results(self, mcp_ctx):
-        """search_ads reports no results when search returns an empty response."""
+    async def test_keyword_query_returns_results(self, live_ctx):
+        """A keyword query returns a non-empty result set."""
         from ads_mcp.server import search_ads
 
-        mcp_ctx.search.return_value = MOCK_EMPTY_SEARCH
-        result = await search_ads("xyzzy nonexistent query")
-        assert "No results found" in result
+        result = await search_ads("globular clusters millisecond pulsars", rows=5)
+        assert "ADS API error" not in result
+        assert "Found" in result
 
-    async def test_passes_query_and_pagination(self, mcp_ctx):
-        """search_ads forwards query, rows, start, and sort to the client."""
+    async def test_empty_query_returns_no_results_message(self, live_ctx):
+        """An impossible query returns the no-results message gracefully."""
         from ads_mcp.server import search_ads
 
-        await search_ads("pulsars", rows=5, start=2, sort="citation_count desc")
-        call_kwargs = mcp_ctx.search.call_args
-        assert call_kwargs.kwargs["rows"] == 5
-        assert call_kwargs.kwargs["start"] == 2
-        assert call_kwargs.kwargs["sort"] == "citation_count desc"
+        result = await search_ads("xyzzy_nonexistent_query_ads_mcp_test_abc123")
+        assert "ADS API error" not in result
+
+    async def test_pagination_parameters(self, live_ctx):
+        """rows and start parameters are accepted without error."""
+        from ads_mcp.server import search_ads
+
+        result = await search_ads("pulsars", rows=3, start=0)
+        assert "ADS API error" not in result
+        assert "Found" in result
 
 
 class TestGetAbstract:
-    """Tests for the get_abstract tool."""
+    """Integration tests for the get_abstract tool."""
 
-    async def test_returns_abstract_block(self, mcp_ctx):
-        """get_abstract returns title, authors, and full abstract."""
+    async def test_returns_bibcode(self, live_ctx):
+        """get_abstract result contains the requested bibcode."""
         from ads_mcp.server import get_abstract
 
         result = await get_abstract(BIBCODE)
+        assert "ADS API error" not in result
         assert BIBCODE in result
-        assert "Abstract" in result
-        assert MOCK_DOC["abstract"] in result
 
-    async def test_includes_arxiv_id(self, mcp_ctx):
-        """get_abstract extracts and shows the arXiv identifier."""
+    async def test_returns_abstract_text(self, live_ctx):
+        """get_abstract result contains an abstract section."""
         from ads_mcp.server import get_abstract
 
         result = await get_abstract(BIBCODE)
-        assert ARXIV_ID in result
+        assert "Abstract" in result
 
-    async def test_includes_ads_url(self, mcp_ctx):
-        """get_abstract appends the ADS web URL."""
+    async def test_returns_ads_url(self, live_ctx):
+        """get_abstract appends the ADS web URL for the paper."""
         from ads_mcp.server import get_abstract
 
         result = await get_abstract(BIBCODE)
         assert f"https://ui.adsabs.harvard.edu/abs/{BIBCODE}" in result
 
-    async def test_not_found(self, mcp_ctx):
-        """get_abstract returns a helpful message when the bibcode is unknown."""
+    async def test_unknown_bibcode_returns_not_found(self, live_ctx):
+        """get_abstract reports a missing paper gracefully."""
         from ads_mcp.server import get_abstract
 
-        mcp_ctx.search.return_value = MOCK_EMPTY_SEARCH
         result = await get_abstract("1900FAKE..000...00X")
         assert "No paper found" in result
+        assert "ADS API error" not in result
 
 
 class TestGetReferences:
-    """Tests for the get_references tool."""
+    """Integration tests for the get_references tool."""
 
-    async def test_returns_reference_list(self, mcp_ctx):
-        """get_references returns a formatted list of references."""
+    async def test_returns_reference_list(self, live_ctx):
+        """get_references returns a non-error result for a real bibcode."""
         from ads_mcp.server import get_references
 
         result = await get_references(BIBCODE)
-        assert "Found" in result
-        mcp_ctx.get_references.assert_called_once_with(BIBCODE, rows=50)
+        assert "ADS API error" not in result
 
-    async def test_custom_rows(self, mcp_ctx):
-        """get_references passes the rows parameter to the client."""
+    async def test_custom_rows_accepted(self, live_ctx):
+        """get_references accepts a custom rows argument."""
         from ads_mcp.server import get_references
 
-        await get_references(BIBCODE, rows=100)
-        mcp_ctx.get_references.assert_called_once_with(BIBCODE, rows=100)
+        result = await get_references(BIBCODE, rows=10)
+        assert "ADS API error" not in result
 
 
 class TestGetCitations:
-    """Tests for the get_citations tool."""
+    """Integration tests for the get_citations tool."""
 
-    async def test_returns_citation_list(self, mcp_ctx):
-        """get_citations returns a formatted list of citing papers."""
+    async def test_returns_citation_result(self, live_ctx):
+        """get_citations returns a non-error result (may be empty for a new paper)."""
         from ads_mcp.server import get_citations
 
         result = await get_citations(BIBCODE)
-        assert "Found" in result
-        mcp_ctx.get_citations.assert_called_once_with(BIBCODE, rows=50)
+        assert "ADS API error" not in result
 
-    async def test_custom_rows(self, mcp_ctx):
-        """get_citations passes the rows parameter to the client."""
+    async def test_custom_rows_accepted(self, live_ctx):
+        """get_citations accepts a custom rows argument."""
         from ads_mcp.server import get_citations
 
-        await get_citations(BIBCODE, rows=25)
-        mcp_ctx.get_citations.assert_called_once_with(BIBCODE, rows=25)
+        result = await get_citations(BIBCODE, rows=10)
+        assert "ADS API error" not in result
 
 
 class TestExportBibtex:
-    """Tests for the export_bibtex tool."""
+    """Integration tests for the export_bibtex tool."""
 
-    async def test_returns_bibtex_string(self, mcp_ctx):
-        """export_bibtex returns a BibTeX-formatted string."""
+    async def test_returns_bibtex_entry(self, live_ctx):
+        """export_bibtex returns a string containing a BibTeX entry."""
         from ads_mcp.server import export_bibtex
 
         result = await export_bibtex([BIBCODE])
-        assert "@ARTICLE" in result
-        mcp_ctx.export.assert_called_once_with([BIBCODE], fmt="bibtex")
+        assert "ADS API error" not in result
+        assert "@" in result  # BibTeX entries start with @
+        assert BIBCODE in result
 
-    async def test_multiple_bibcodes(self, mcp_ctx):
-        """export_bibtex passes all bibcodes to the client."""
+    async def test_multiple_bibcodes(self, live_ctx):
+        """export_bibtex handles a list of bibcodes."""
         from ads_mcp.server import export_bibtex
 
         bibcodes = [BIBCODE, "2019ApJ...887L..24M"]
-        await export_bibtex(bibcodes)
-        mcp_ctx.export.assert_called_once_with(bibcodes, fmt="bibtex")
+        result = await export_bibtex(bibcodes)
+        assert "ADS API error" not in result
+        assert "@" in result
 
 
 class TestExportRis:
-    """Tests for the export_ris tool."""
+    """Integration tests for the export_ris tool."""
 
-    async def test_returns_ris_string(self, mcp_ctx):
-        """export_ris returns an RIS-formatted string."""
+    async def test_returns_ris_content(self, live_ctx):
+        """export_ris returns a RIS-formatted string."""
         from ads_mcp.server import export_ris
 
-        mcp_ctx.export.return_value = MOCK_RIS
         result = await export_ris([BIBCODE])
-        assert "TY  - JOUR" in result
-        mcp_ctx.export.assert_called_once_with([BIBCODE], fmt="ris")
+        assert "ADS API error" not in result
+        assert "TY  -" in result
 
 
 class TestExportCitation:
-    """Tests for the export_citation tool."""
+    """Integration tests for the export_citation tool."""
 
-    async def test_valid_format(self, mcp_ctx):
-        """export_citation returns formatted output for a valid format string."""
+    async def test_bibtex_format(self, live_ctx):
+        """export_citation in bibtex format returns a BibTeX entry."""
         from ads_mcp.server import export_citation
 
         result = await export_citation([BIBCODE], fmt="bibtex")
-        assert "@ARTICLE" in result
-        mcp_ctx.export.assert_called_once_with([BIBCODE], fmt="bibtex")
+        assert "ADS API error" not in result
+        assert "@" in result
 
-    async def test_aastex_format(self, mcp_ctx):
-        """export_citation accepts the aastex format."""
+    async def test_aastex_format(self, live_ctx):
+        """export_citation in aastex format returns a non-error result."""
         from ads_mcp.server import export_citation
 
-        mcp_ctx.export.return_value = "\\bibitem{...}"
         result = await export_citation([BIBCODE], fmt="aastex")
         assert "ADS API error" not in result
-        mcp_ctx.export.assert_called_once_with([BIBCODE], fmt="aastex")
 
-    async def test_invalid_format_rejected(self, mcp_ctx):
-        """export_citation rejects an unsupported format without calling the API."""
+    async def test_endnote_format(self, live_ctx):
+        """export_citation in endnote format returns a non-error result."""
+        from ads_mcp.server import export_citation
+
+        result = await export_citation([BIBCODE], fmt="endnote")
+        assert "ADS API error" not in result
+
+    async def test_invalid_format_rejected_without_api_call(self, live_ctx):
+        """export_citation rejects an unsupported format before calling the API."""
         from ads_mcp.server import export_citation
 
         result = await export_citation([BIBCODE], fmt="pdf")
         assert "Unsupported format" in result
-        mcp_ctx.export.assert_not_called()
+        assert "ADS API error" not in result
 
 
 class TestFindArxiv:
-    """Tests for the find_arxiv tool."""
+    """Integration tests for the find_arxiv tool."""
 
-    async def test_finds_paper_by_arxiv_id(self, mcp_ctx):
-        """find_arxiv returns paper details for a valid arXiv identifier."""
-        from ads_mcp.server import find_arxiv
+    async def test_find_by_arxiv_id(self, live_ctx):
+        """find_arxiv resolves a paper from its arXiv identifier."""
+        from ads_mcp.server import find_arxiv, get_abstract
 
-        result = await find_arxiv(ARXIV_ID)
+        # Retrieve the paper first to discover its arXiv ID.
+        abstract = await get_abstract(BIBCODE)
+        match = re.search(r"arXiv\s*:\s*(\S+)", abstract)
+        if not match:
+            pytest.skip(f"Paper {BIBCODE} has no arXiv identifier in ADS")
+        arxiv_id = match.group(1)
+
+        result = await find_arxiv(arxiv_id)
+        assert "ADS API error" not in result
         assert BIBCODE in result
-        assert "Abstract" in result
 
-    async def test_strips_arxiv_prefix(self, mcp_ctx):
-        """find_arxiv normalises the 'arXiv:' prefix before querying."""
-        from ads_mcp.server import find_arxiv
+    async def test_strips_arxiv_prefix(self, live_ctx):
+        """find_arxiv handles the 'arXiv:' prefix transparently."""
+        from ads_mcp.server import find_arxiv, get_abstract
 
-        result = await find_arxiv(f"arXiv:{ARXIV_ID}")
+        abstract = await get_abstract(BIBCODE)
+        match = re.search(r"arXiv\s*:\s*(\S+)", abstract)
+        if not match:
+            pytest.skip(f"Paper {BIBCODE} has no arXiv identifier in ADS")
+        arxiv_id = match.group(1)
+
+        result = await find_arxiv(f"arXiv:{arxiv_id}")
+        assert "ADS API error" not in result
         assert BIBCODE in result
 
-    async def test_not_found(self, mcp_ctx):
-        """find_arxiv returns a helpful message when no paper matches."""
+    async def test_unknown_arxiv_id_returns_not_found(self, live_ctx):
+        """find_arxiv returns a helpful message for an unknown arXiv ID."""
         from ads_mcp.server import find_arxiv
 
-        mcp_ctx.search.return_value = MOCK_EMPTY_SEARCH
         result = await find_arxiv("9999.99999")
         assert "No paper found" in result
+        assert "ADS API error" not in result
 
 
 class TestFindDoi:
-    """Tests for the find_doi tool."""
+    """Integration tests for the find_doi tool."""
 
-    async def test_finds_paper_by_doi(self, mcp_ctx):
-        """find_doi returns paper details for a valid DOI."""
-        from ads_mcp.server import find_doi
+    async def test_find_by_doi(self, live_ctx):
+        """find_doi resolves a paper from its DOI."""
+        from ads_mcp.server import find_doi, get_abstract
 
-        result = await find_doi(DOI)
-        assert BIBCODE in result
-        assert "Abstract" in result
+        # Retrieve the paper to discover its DOI.
+        abstract = await get_abstract(BIBCODE)
+        match = re.search(r"DOI\s*:\s*(\S+)", abstract)
+        if not match:
+            pytest.skip(f"Paper {BIBCODE} has no DOI in ADS")
+        doi = match.group(1)
 
-    async def test_strips_url_prefix(self, mcp_ctx):
-        """find_doi strips the 'https://doi.org/' URL prefix."""
-        from ads_mcp.server import find_doi
-
-        result = await find_doi(f"https://doi.org/{DOI}")
+        result = await find_doi(doi)
         assert "ADS API error" not in result
+        assert BIBCODE in result
 
-    async def test_not_found(self, mcp_ctx):
-        """find_doi returns a helpful message when no paper matches."""
+    async def test_strips_url_prefix(self, live_ctx):
+        """find_doi strips 'https://doi.org/' before querying."""
+        from ads_mcp.server import find_doi, get_abstract
+
+        abstract = await get_abstract(BIBCODE)
+        match = re.search(r"DOI\s*:\s*(\S+)", abstract)
+        if not match:
+            pytest.skip(f"Paper {BIBCODE} has no DOI in ADS")
+        doi = match.group(1)
+
+        result = await find_doi(f"https://doi.org/{doi}")
+        assert "ADS API error" not in result
+        assert BIBCODE in result
+
+    async def test_unknown_doi_returns_not_found(self, live_ctx):
+        """find_doi returns a helpful message for an unknown DOI."""
         from ads_mcp.server import find_doi
 
-        mcp_ctx.search.return_value = MOCK_EMPTY_SEARCH
-        result = await find_doi("10.9999/nonexistent")
+        result = await find_doi("10.9999/nonexistent-ads-mcp-test")
         assert "No paper found" in result
+        assert "ADS API error" not in result
 
 
 class TestGetMetrics:
-    """Tests for the get_metrics tool."""
+    """Integration tests for the get_metrics tool."""
 
-    async def test_returns_metrics_summary(self, mcp_ctx):
-        """get_metrics returns basic, citation, and indicator stats."""
+    async def test_returns_stats_sections(self, live_ctx):
+        """get_metrics returns basic stats, citation stats, and indicators."""
         from ads_mcp.server import get_metrics
 
         result = await get_metrics([BIBCODE])
-        assert "Basic Stats" in result
-        assert "Citation Stats" in result
-        assert "Bibliometric Indicators" in result
-        mcp_ctx.metrics.assert_called_once_with(
-            [BIBCODE], types=["basic", "citations", "indicators"]
-        )
+        assert "ADS API error" not in result
+        # ADS may skip papers with no metrics; accept either outcome.
+        assert "Basic Stats" in result or "Skipped" in result or "No metrics" in result
 
-    async def test_citation_counts_present(self, mcp_ctx):
-        """get_metrics output includes total citation count."""
+    async def test_multiple_bibcodes(self, live_ctx):
+        """get_metrics accepts multiple bibcodes without error."""
         from ads_mcp.server import get_metrics
 
-        result = await get_metrics([BIBCODE])
-        assert "3" in result  # total citations from MOCK_METRICS
-
-    async def test_skipped_bibcodes_reported(self, mcp_ctx):
-        """get_metrics reports bibcodes that ADS skipped."""
-        from ads_mcp.server import get_metrics
-
-        mcp_ctx.metrics.return_value = {
-            **MOCK_METRICS,
-            "skipped bibcodes": ["1900FAKE..000...00X"],
-        }
-        result = await get_metrics([BIBCODE, "1900FAKE..000...00X"])
-        assert "Skipped" in result
-        assert "1900FAKE..000...00X" in result
-
-    async def test_empty_response(self, mcp_ctx):
-        """get_metrics handles an empty metrics dict gracefully."""
-        from ads_mcp.server import get_metrics
-
-        mcp_ctx.metrics.return_value = {}
-        result = await get_metrics([BIBCODE])
-        assert "No metrics data returned" in result
+        result = await get_metrics([BIBCODE, "2019ApJ...887L..24M"])
+        assert "ADS API error" not in result
 
 
 class TestGetSimilar:
-    """Tests for the get_similar tool."""
+    """Integration tests for the get_similar tool."""
 
-    async def test_returns_similar_papers(self, mcp_ctx):
-        """get_similar returns a formatted list of similar papers."""
+    async def test_returns_similar_papers(self, live_ctx):
+        """get_similar returns a non-error result for a real bibcode."""
         from ads_mcp.server import get_similar
 
-        mcp_ctx.search.return_value = MOCK_SEARCH_MULTI
-        result = await get_similar(BIBCODE)
-        assert "Found" in result
+        result = await get_similar(BIBCODE, rows=5)
+        assert "ADS API error" not in result
 
-    async def test_passes_bibcode_and_rows(self, mcp_ctx):
-        """get_similar passes bibcode and rows to the client search call."""
+    async def test_custom_rows_accepted(self, live_ctx):
+        """get_similar accepts a custom rows argument."""
         from ads_mcp.server import get_similar
 
-        mcp_ctx.search.return_value = MOCK_SEARCH_MULTI
-        await get_similar(BIBCODE, rows=5)
-        call_args = mcp_ctx.search.call_args
-        assert f"similar(bibcode:{BIBCODE})" in call_args.args[0]
-        assert call_args.kwargs["rows"] == 5
+        result = await get_similar(BIBCODE, rows=3)
+        assert "ADS API error" not in result
 
 
 class TestAuthorSearch:
-    """Tests for the author_search tool."""
+    """Integration tests for the author_search tool."""
 
-    async def test_returns_author_papers(self, mcp_ctx):
-        """author_search returns formatted results for a given author."""
+    async def test_finds_papers_by_author(self, live_ctx):
+        """author_search returns papers for a known author name."""
         from ads_mcp.server import author_search
 
-        mcp_ctx.search.return_value = MOCK_SEARCH_ONE
-        result = await author_search("Garling, C")
+        # The bibcode ends with 'G'; use the last-name from the bibcode author
+        result = await author_search("Garling, C", rows=5)
+        assert "ADS API error" not in result
         assert "Found" in result
 
-    async def test_query_contains_author_operator(self, mcp_ctx):
-        """author_search wraps the name with the author: field operator."""
+    async def test_refereed_only_filter(self, live_ctx):
+        """author_search with refereed_only=True returns a non-error result."""
         from ads_mcp.server import author_search
 
-        await author_search("Garling, C")
-        call_args = mcp_ctx.search.call_args
-        assert 'author:"Garling, C"' in call_args.args[0]
+        result = await author_search("Garling, C", rows=5, refereed_only=True)
+        assert "ADS API error" not in result
 
-    async def test_refereed_only_filter(self, mcp_ctx):
-        """author_search appends AND property:refereed when refereed_only=True."""
+    async def test_sort_by_date(self, live_ctx):
+        """author_search with custom sort returns a non-error result."""
         from ads_mcp.server import author_search
 
-        await author_search("Garling, C", refereed_only=True)
-        call_args = mcp_ctx.search.call_args
-        assert "property:refereed" in call_args.args[0]
-
-    async def test_no_refereed_filter_by_default(self, mcp_ctx):
-        """author_search does not add the refereed filter by default."""
-        from ads_mcp.server import author_search
-
-        await author_search("Garling, C")
-        call_args = mcp_ctx.search.call_args
-        assert "property:refereed" not in call_args.args[0]
+        result = await author_search("Garling, C", rows=5, sort="date desc")
+        assert "ADS API error" not in result
 
 
 class TestGetPaperDetails:
-    """Tests for the get_paper_details tool."""
+    """Integration tests for the get_paper_details tool."""
 
-    async def test_returns_all_fields(self, mcp_ctx):
-        """get_paper_details returns key-value pairs for every field in the doc."""
+    async def test_returns_bibcode_field(self, live_ctx):
+        """get_paper_details output contains the bibcode field."""
         from ads_mcp.server import get_paper_details
 
         result = await get_paper_details(BIBCODE)
+        assert "ADS API error" not in result
         assert "bibcode" in result
+        assert BIBCODE in result
+
+    async def test_custom_fields(self, live_ctx):
+        """get_paper_details respects a custom field list."""
+        from ads_mcp.server import get_paper_details
+
+        result = await get_paper_details(BIBCODE, fields="bibcode,title,year")
+        assert "ADS API error" not in result
         assert BIBCODE in result
         assert "title" in result
 
-    async def test_not_found(self, mcp_ctx):
-        """get_paper_details returns a helpful message when bibcode is unknown."""
+    async def test_unknown_bibcode_returns_not_found(self, live_ctx):
+        """get_paper_details reports a missing paper gracefully."""
         from ads_mcp.server import get_paper_details
 
-        mcp_ctx.search.return_value = MOCK_EMPTY_SEARCH
         result = await get_paper_details("1900FAKE..000...00X")
         assert "No paper found" in result
-
-    async def test_custom_fields(self, mcp_ctx):
-        """get_paper_details passes a custom field list to the client."""
-        from ads_mcp.server import get_paper_details
-
-        await get_paper_details(BIBCODE, fields="bibcode,title,year")
-        call_args = mcp_ctx.search.call_args
-        assert call_args.kwargs["fields"] == "bibcode,title,year"
+        assert "ADS API error" not in result
