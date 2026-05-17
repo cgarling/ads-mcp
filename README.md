@@ -133,6 +133,9 @@ Here we use the `inputs` feature to avoid hard-coding our API token. Upon first 
 }
 ```
 
+### Claude Code
+To install at the user level (Claude Code allows both user- and project-scoped MCP configurations), run `claude mcp add --transport stdio -e ADS_API_TOKEN=YOUR_TOKEN_HERE --scope user ads-mcp -- uv tool run ads-mcp`. Verify the installation with `claude mcp list`.
+
 ### Claude Desktop
 
 The most reliable way to find the config file is through Claude Desktop itself by selecting `Top Left Dropdown > File > Settings > Developer > Edit Config` and a new Explorer window should open pointed to the appropriate file (a `claude_desktop_config.json`). Right now I recommend **hard coding your API token into the json file**, see notes below. Since this is plain text, make sure the file has appropriate permissions. Restart Claude Desktop after saving.
