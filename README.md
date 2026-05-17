@@ -134,7 +134,13 @@ Here we use the `inputs` feature to avoid hard-coding our API token. Upon first 
 ```
 
 ### Claude Code
-To install at the user level (Claude Code allows both user- and project-scoped MCP configurations), run `claude mcp add --transport stdio -e ADS_API_TOKEN=YOUR_TOKEN_HERE --scope user ads-mcp -- uv tool run ads-mcp`. Verify the installation with `claude mcp list`.
+To install at the user level (Claude Code allows both user- and project-scoped MCP configurations), run 
+
+```bash
+claude mcp add --transport stdio -e ADS_API_TOKEN=YOUR_TOKEN_HERE --scope user ads-mcp -- uv tool run ads-mcp
+```
+
+Verify the installation with `claude mcp list`.
 
 ### Claude Desktop
 
